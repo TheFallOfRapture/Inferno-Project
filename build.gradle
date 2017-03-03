@@ -64,7 +64,7 @@ dependencies {
 	runtime "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
 	runtime "org.lwjgl:lwjgl-xxhash:${lwjglVersion}:${lwjglNatives}"
 	// LWJGL dependencies END
-	compile "com.github.TheFallOfRapture:Morph:0.1.2"
+	compile "com.github.TheFallOfRapture:Morph:0.2.1"
 }
 
 sourceSets {

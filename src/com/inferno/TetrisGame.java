@@ -3,8 +3,12 @@ package com.inferno;
 import com.morph.engine.core.Game;
 import com.morph.engine.graphics.Color;
 import com.morph.engine.graphics.GLRenderingEngine;
+import com.morph.engine.graphics.Texture;
 import com.morph.engine.input.Keyboard;
 import com.morph.engine.math.MatrixUtils;
+import com.morph.engine.math.Vector2f;
+import com.morph.engine.newgui.Panel;
+import com.morph.engine.newgui.TextElement;
 import com.morph.engine.util.Timer;
 import com.inferno.entities.TetrisWorld;
 import com.inferno.pieces.Piece;
@@ -60,6 +64,10 @@ public class TetrisGame extends Game {
 
         dropTimer = new Timer(dropInterval, this::timerTick);
         dropTimer.start();
+
+        addElement(new Panel(new Vector2f(0, 0), new Vector2f(8.33f, HEIGHT), new Color(0.05f, 0.05f, 0.05f), new Texture("textures/solid.png")));
+        addElement(new Panel(new Vector2f((20 * ratio) - 8.33f, 0), new Vector2f(8.33f, HEIGHT), new Color(0.05f, 0.05f, 0.05f), new Texture("textures/solid.png")));
+        addElement(new TextElement("TETRIS", "fonts/Silkscreen/slkscr.ttf", 1, new Color(1, 1, 1), new Vector2f(0, 0)));
     }
 
     @Override
