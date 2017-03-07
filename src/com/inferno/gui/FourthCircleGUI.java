@@ -19,6 +19,7 @@ public class FourthCircleGUI extends TetrisGUI {
     }
 
     public void load() {
+        super.load();
         addElement(new Panel(new Vector2f(0, 0), new Vector2f(width, height), new Color(1, 1, 1, 0.2f), new Texture("textures/mass effect 3.jpg")));
 
         addElement(new TextElement("Circle 2", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(570, 60), -20));
