@@ -21,6 +21,14 @@ public class TetrisWorld extends TileWorld {
         this.pieces = new ArrayList<>();
     }
 
+    public void clearAll() {
+        pieces.clear();
+
+        for (Entity e : this.getEntities()) {
+            removeEntity(e);
+        }
+    }
+
     public boolean addPiece(Piece p) {
         pieces.add(p);
         return addEntityGrid(p, p.getX(), p.getY());
