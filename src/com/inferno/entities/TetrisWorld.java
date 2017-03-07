@@ -1,5 +1,6 @@
 package com.inferno.entities;
 
+import com.inferno.entities.components.Ad;
 import com.morph.engine.core.Game;
 import com.morph.engine.core.TileWorld;
 import com.morph.engine.entities.Entity;
@@ -97,7 +98,7 @@ public class TetrisWorld extends TileWorld {
 
         for (int y = 0; y < getHeight(); y++) {
             for (int x = 0; x < getWidth(); x++) {
-                if (getEntity(x, y) == null) {
+                if (getEntity(x, y) == null || getEntity(x, y).hasComponent(Ad.class)) {
                     filledRows.remove((Integer)y);
                     break;
                 }
@@ -155,19 +156,21 @@ public class TetrisWorld extends TileWorld {
     }
 
     public void fillEmptyRows(List<Integer> emptyRows) {
-        for (int row : emptyRows) {
-            int newRow = row - 1;
-            for (int y = newRow; y >= 0; y--) {
-                for (int x = 0; x < getWidth(); x++) {
-                    if (getEntity(x, y) != null)
-                        translateEntity(x, y, 0, 1);
+        List<Integer> remaining = emptyRows;
+
+        while (remaining.size() > 0) {
+            for (int row : emptyRows) {
+                int newRow = row - 1;
+                for (int y = newRow; y >= 0; y--) {
+                    for (int x = 0; x < getWidth(); x++) {
+                        if (getEntity(x, y) != null)
+                            translateEntity(x, y, 0, 1);
+                    }
                 }
             }
-        }
 
-        List<Integer> remaining = checkForEmptyRows(emptyRows.get(0));
-        if (remaining.size() != 0)
-            fillEmptyRows(remaining);
+            remaining = checkForEmptyRows(emptyRows.get(0));
+        }
     }
 
     public boolean anyFilledColumns() {
@@ -178,5 +181,26 @@ public class TetrisWorld extends TileWorld {
         }
 
         return false;
+    }
+
+    public void addAdRow() {
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = getHeight(); y >= 0; y--) {
+                if (isEmpty(x, y)) {
+                    addEntity(TetrisEntityFactory.getAdBlock(1), x, y);
+                    break;
+                }
+            }
+        }
+    }
+
+    public void removeAllAds() {
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = getHeight(); y >= 0; y--) {
+                if (getEntity(x, y) != null && getEntity(x, y).hasComponent(Ad.class)) {
+                    removeEntity(x, y);
+                }
+            }
+        }
     }
 }

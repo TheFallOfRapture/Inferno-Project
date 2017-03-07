@@ -13,8 +13,8 @@ import com.morph.engine.newgui.TextElement;
  */
 public class TetrisGUI extends GUI {
     private float worldSize;
-    private int width;
-    private int height;
+    protected int width;
+    protected int height;
     private int score;
 
     private TextElement scoreText;
@@ -34,9 +34,10 @@ public class TetrisGUI extends GUI {
         addElement(new Panel(new Vector2f(0, 0), new Vector2f(panelWidth, height), new Color(0.05f, 0.05f, 0.05f), new Texture("textures/solid.png")));
         addElement(new Panel(new Vector2f(width - panelWidth, 0), new Vector2f(panelWidth, height), new Color(0.05f, 0.05f, 0.05f), new Texture("textures/solid.png")));
 
-        addElement(new TextElement("TETRIS", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(10, 540), -20));
-        addElement(new TextElement("from HELL", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(10, 505), -20));
-        addElement(new TextElement("Fernando Gonzalez", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(10, 450), -20));
+        addElement(new TextElement("TETRIS", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(90, 540), -20));
+        addElement(new TextElement("from HELL", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(1, 0, 0), new Vector2f(75, 505), -20));
+
+        addElement(new TextElement("Fernando Gonzalez", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(32, 60), -20));
 
         addElement(new TextElement("Score", "fonts/Ubuntu/Ubuntu-Regular.ttf", 64, new Color(1, 1, 1), new Vector2f(570, 520), -20));
         scoreText = new TextElement("0", "fonts/Ubuntu/Ubuntu-Regular.ttf", 32, new Color(0, 1, 0), new Vector2f(570, 480), -20);

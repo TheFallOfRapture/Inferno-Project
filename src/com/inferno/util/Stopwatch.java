@@ -27,7 +27,6 @@ public class Stopwatch {
 
     public void tick(float dt) {
         if (running && !stopped && !interrupted) {
-            System.out.println(accumulator + " : " + limit);
             if (accumulator >= limit) {
                 stoppedAction.run();
                 stopped = true;
@@ -59,7 +58,6 @@ public class Stopwatch {
     }
 
     public float getTime() {
-        System.out.println(accumulator);
         return accumulator;
     }
 }

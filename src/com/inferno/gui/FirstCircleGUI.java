@@ -19,7 +19,7 @@ public class FirstCircleGUI extends TetrisGUI {
     public void load() {
         super.load();
 
-        addElement(new TextElement("Circle 1", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(570, 50), -20));
+        addElement(new TextElement("Circle 1", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(570, 60), -20));
     }
 
     public void activateQuicktimeEvent(String button, float timer) {

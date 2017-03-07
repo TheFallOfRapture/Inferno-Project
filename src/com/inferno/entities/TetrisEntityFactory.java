@@ -1,5 +1,6 @@
 package com.inferno.entities;
 
+import com.inferno.entities.components.Ad;
 import com.morph.engine.entities.Entity;
 import com.morph.engine.entities.EntityFactory;
 import com.morph.engine.graphics.Color;
@@ -16,6 +17,13 @@ public class TetrisEntityFactory {
     public static Entity getBlock(String name, Color c, float size) {
         Entity block = EntityFactory.getCustomTintRectangle(name, size, size, c, new TetrisShader());
         block.getComponent(RenderData.class).setTexture(new Texture("textures/tetrisBlockSV.png"), 0);
+        return block;
+    }
+
+    public static Entity getAdBlock(float size) {
+        Entity block = EntityFactory.getRectangle("ad", size, size, new Color(1, 1, 1));
+        block.getComponent(RenderData.class).setTexture(new Texture("textures/ad.jpg"), 0);
+        block.addComponent(new Ad());
         return block;
     }
 

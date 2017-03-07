@@ -1,9 +1,6 @@
 package com.inferno;
 
-import com.inferno.gui.FirstCircleGUI;
-import com.inferno.gui.IntroGUI;
-import com.inferno.gui.SecondCircleGUI;
-import com.inferno.gui.TetrisGUI;
+import com.inferno.gui.*;
 import com.morph.engine.util.State;
 import com.morph.engine.util.StateMachine;
 import com.inferno.util.Stopwatch;
@@ -45,7 +42,14 @@ public class TetrisGame extends Game {
 
     private float qtTimeLimit = 2.5f;
 
-    private Timer paywallTimer;
+    private Stopwatch paywallTimer;
+
+    private Timer adTimer;
+    private Stopwatch adBlockCooldown;
+
+    private boolean adBlockReady = true;
+
+    private float adBlockTime = 2.5f;
 
     public TetrisGame(int width, int height, float fps, boolean fullscreen) {
         super(width, height, "Six Circles of Bad Game Design", fps, fullscreen);
@@ -76,11 +80,15 @@ public class TetrisGame extends Game {
 
         gsm = new StateMachine(new State("Demo"));
 
-        gsm.addPossibilities("Main Menu", "Demo", "Circle 1", "Circle 2", "Circle 3", "Circle 4", "Circle 5", "Circle 6", "End Screen");
+        gsm.addPossibilities("Main Menu", "Demo", "Circle 1", "Circle 2", "Circle 3", "Circle 4", "Circle 4: Red", "Circle 4: Green", "Circle 4: Blue",
+                "Circle 5", "Circle 6", "End Screen");
         gsm.addTransition("*", "Circle 1", this::initCircle1);
         gsm.addTransition("*", "Circle 2", this::initCircle2);
         gsm.addTransition("*", "Circle 3", this::initCircle3);
         gsm.addTransition("*", "Circle 4", this::initCircle4);
+        gsm.addTransition("*", "Circle 4: Red", this::initCircle4Red);
+        gsm.addTransition("*", "Circle 4: Green", this::initCircle4Green);
+        gsm.addTransition("*", "Circle 4: Blue", this::initCircle4Blue);
         gsm.addTransition("*", "Circle 5", this::initCircle5);
         gsm.addTransition("*", "Circle 6", this::initCircle6);
     }
@@ -160,6 +168,8 @@ public class TetrisGame extends Game {
 
         w.clearAll();
 
+        renderingEngine.setClearColor(0.05f, 0, 0, 0);
+
         dropInterval = 0.75f;
         regularDropInterval = 0.75f;
         dropTimer.setInterval(dropInterval);
@@ -168,6 +178,9 @@ public class TetrisGame extends Game {
         removeGUI(currentGUI);
         currentGUI = new FirstCircleGUI(this, width, height, WORLD_SIZE);
         addGUI(currentGUI);
+
+        score = 0;
+        currentGUI.updateScore(0);
     }
 
     private void initCircle2() {
@@ -175,9 +188,11 @@ public class TetrisGame extends Game {
 
         w.clearAll();
 
+        renderingEngine.setClearColor(0.1f, 0, 0, 0);
+
         dropTimer.stop();
 
-        paywallTimer = new Timer(5.0f, () -> {
+        paywallTimer = new Stopwatch(5.0f, () -> {}, () -> {
             removeGUI(currentGUI);
             currentGUI = new SecondCircleGUI(this, width, height, WORLD_SIZE);
             addGUI(currentGUI);
@@ -186,13 +201,106 @@ public class TetrisGame extends Game {
         });
 
         paywallTimer.start();
+
+        score = 0;
+        currentGUI.updateScore(0);
     }
 
     // TODO: Complete circles
-    private void initCircle3() {}
-    private void initCircle4() {}
-    private void initCircle5() {}
-    private void initCircle6() {}
+    private void initCircle3() {
+        removeGUI(currentGUI);
+        currentGUI = new ThirdCircleGUI(this, width, height, WORLD_SIZE, adBlockTime);
+        addGUI(currentGUI);
+
+        renderingEngine.setClearColor(0, 0, 0, 0);
+
+        w.clearAll();
+
+        System.out.println("Entering Circle 3.");
+
+        dropInterval = 0.3f;
+        regularDropInterval = dropInterval;
+        dropTimer.setInterval(dropInterval);
+        dropTimer.setAction(this::timerTick);
+        dropTimer.start();
+
+        adTimer = new Timer(7.5f, w::addAdRow);
+        adTimer.start();
+
+        adBlockCooldown = new Stopwatch(adBlockTime, () -> {}, this::restoreAdBlock);
+
+        score = 0;
+        currentGUI.updateScore(0);
+    }
+
+    private void initCircle4() {
+        System.out.println("Entering Circle 4.");
+
+        renderingEngine.setClearColor(0.4f, 0, 0, 0);
+
+        w.clearAll();
+        dropTimer.stop();
+
+        removeGUI(currentGUI);
+        currentGUI = new FourthCircleGUI(this, width, height, WORLD_SIZE);
+        addGUI(currentGUI);
+
+        score = 0;
+        currentGUI.updateScore(0);
+    }
+
+    private void initCircle5() {
+        renderingEngine.setClearColor(0.65f, 0, 0, 0);
+
+        dropTimer.start();
+
+        removeGUI(currentGUI);
+        currentGUI = new FifthCircleGUI(this, width, height, WORLD_SIZE);
+        addGUI(currentGUI);
+
+        score = 0;
+        currentGUI.updateScore(0);
+    }
+
+    private void initCircle6() {
+        renderingEngine.setClearColor(1, 0, 0, 0);
+
+        score = 0;
+        currentGUI.updateScore(0);
+    }
+
+    private void initCircle4Red() {
+        removeGUI(currentGUI);
+        currentGUI = new FourthCircleRedGUI(this, width, height, WORLD_SIZE);
+        addGUI(currentGUI);
+    }
+
+    private void initCircle4Green() {
+        removeGUI(currentGUI);
+        currentGUI = new FourthCircleGreenGUI(this, width, height, WORLD_SIZE);
+        addGUI(currentGUI);
+    }
+
+    private void initCircle4Blue() {
+        removeGUI(currentGUI);
+        currentGUI = new FourthCircleBlueGUI(this, width, height, WORLD_SIZE);
+        addGUI(currentGUI);
+    }
+
+    private void useAdBlock() {
+        w.removeAllAds();
+        adBlockCooldown = new Stopwatch(adBlockTime, () -> {}, this::restoreAdBlock);
+        adBlockCooldown.start();
+
+        ((ThirdCircleGUI)currentGUI).setOnCooldown();
+
+        adBlockReady = false;
+    }
+
+    private void restoreAdBlock() {
+        adBlockReady = true;
+        ((ThirdCircleGUI)currentGUI).setOffCooldown();
+    }
 
     @Override
     public void preGameUpdate() {
@@ -204,6 +312,9 @@ public class TetrisGame extends Game {
         dropTimer.step(dt);
 
         switch (gsm.getCurrentStateName()) {
+            case "Demo":
+                updateDemo(dt);
+                break;
             case "Circle 1":
                 updateCircle1(dt);
                 break;
@@ -225,6 +336,12 @@ public class TetrisGame extends Game {
         }
     }
 
+    private void updateDemo(float dt) {
+        if (score >= 100) {
+            gsm.changeState("Circle 1");
+        }
+    }
+
     private void updateCircle1(float dt) {
         if (qtEvent != null) {
             ((FirstCircleGUI)currentGUI).updateTimer(qtEvent.getTimeLimit() - qtEvent.getTime());
@@ -237,10 +354,29 @@ public class TetrisGame extends Game {
     }
 
     private void updateCircle2(float dt) {
-        paywallTimer.step(dt);
+        paywallTimer.tick(dt);
     }
 
-    private void updateCircle3(float dt) {}
+    private void updateCircle3(float dt) {
+        adTimer.step(dt);
+
+        if (adBlockCooldown != null)
+            adBlockCooldown.tick(dt);
+
+        if (adBlockReady && Keyboard.isKeyReleased(GLFW.GLFW_KEY_B)) {
+            useAdBlock();
+        }
+
+        if (!adBlockReady) {
+            System.out.println(adBlockCooldown.getTime());
+            ((ThirdCircleGUI)currentGUI).updateCooldown(adBlockCooldown.getTime());
+        }
+
+        if (score >= 250) {
+            gsm.changeState("Circle 4");
+        }
+    }
+
     private void updateCircle4(float dt) {}
     private void updateCircle5(float dt) {}
     private void updateCircle6(float dt) {}
@@ -281,6 +417,10 @@ public class TetrisGame extends Game {
         }
     }
 
+    public StateMachine getStateMachine() {
+        return this.gsm;
+    }
+
     @Override
     public void handleInput() {
         if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_A) && !gameLost) {
@@ -319,10 +459,32 @@ public class TetrisGame extends Game {
 
         if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_1)) {
             gsm.changeState("Circle 1");
+            gameLost = false;
         }
 
         if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_2)) {
             gsm.changeState("Circle 2");
+            gameLost = false;
+        }
+
+        if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_3)) {
+            gsm.changeState("Circle 3");
+            gameLost = false;
+        }
+
+        if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_4)) {
+            gsm.changeState("Circle 4");
+            gameLost = false;
+        }
+
+        if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_5)) {
+            gsm.changeState("Circle 5");
+            gameLost = false;
+        }
+
+        if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_6)) {
+            gsm.changeState("Circle 6");
+            gameLost = false;
         }
 
         if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_Q) && qtEvent != null && !qtEvent.isStopped() && gsm.isCurrentState("Circle 1")) {
