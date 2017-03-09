@@ -7,6 +7,8 @@ import org.gradle.internal.os.OperatingSystem
 mainClassName = 'com.inferno.TetrisGameLauncher'
 project.ext.lwjglVersion = "3.0.1-SNAPSHOT"
 
+project.ext.set('nativeLibsDir', "$buildDir/libs/natives")
+
 switch ( OperatingSystem.current() ) {
 	case OperatingSystem.WINDOWS:
 		project.ext.lwjglNatives = "natives-windows"
@@ -53,16 +55,16 @@ dependencies {
 	compile "org.lwjgl:lwjgl-vulkan:${lwjglVersion}"
 	compile "org.lwjgl:lwjgl-xxhash:${lwjglVersion}"
 	// LWJGL natives
-	runtime "org.lwjgl:lwjgl:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-lmdb:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-nanovg:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-nfd:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-nuklear:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-openal:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
-	runtime "org.lwjgl:lwjgl-xxhash:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-glfw:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-jemalloc:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-lmdb:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-nanovg:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-nfd:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-nuklear:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-openal:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-stb:${lwjglVersion}:${lwjglNatives}"
+	compile "org.lwjgl:lwjgl-xxhash:${lwjglVersion}:${lwjglNatives}"
 	// LWJGL dependencies END
 	compile "com.github.TheFallOfRapture:Morph:0.4.2"
 }
@@ -80,6 +82,10 @@ sourceSets {
 
 jar {
 	manifest {
-		attributes 'Main-Class': 'com.morph.game.shooting.ShootingGameLauncher'
+		attributes 'Main-Class': 'com.inferno.TetrisGameLauncher'
+	}
+
+	from {
+		configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 	}
 }
