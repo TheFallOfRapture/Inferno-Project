@@ -32,6 +32,8 @@ public class TetrisGame extends Game {
     private boolean gameLost = false;
     private boolean restartGame = false;
 
+    private int pieceXOffset = 0;
+
     private String restartState = "Demo";
 
     private float dropInterval = 1.0f; // Time in seconds that a piece takes to drop one level
@@ -54,6 +56,14 @@ public class TetrisGame extends Game {
     private boolean adBlockReady = true;
 
     private float adBlockTime = 2.5f;
+
+    private final int DEMO_GOAL = 100;
+    private final int CIRCLE_1_GOAL = 400;
+    private final int CIRCLE_3_GOAL = 250;
+    private final int CIRCLE_5_GOAL = 200;
+
+    private int circle5PieceCount = 15;
+    private int circle5PieceLimit = 15;
 
     public TetrisGame(int width, int height, float fps, boolean fullscreen) {
         super(width, height, "Six Circles of Bad Game Design", fps, fullscreen);
@@ -107,7 +117,7 @@ public class TetrisGame extends Game {
 
                     ((FirstCircleGUI) currentGUI).activateQuicktimeEvent("Q", qtTimeLimit);
 
-                    qtTimeLimit -= 0.05 * qtTimeLimit;
+                    qtTimeLimit -= 0.1 * qtTimeLimit;
                 } else
                     bypassQuicktime();
             }
@@ -118,16 +128,24 @@ public class TetrisGame extends Game {
         nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
         resolveFilledRows();
 
-        if (w.anyFilledColumns()) {
-            System.out.println("You lose! Score: " + score);
-            gameLost = true;
-            dropTimer.stop();
-        } else
-            w.addPiece(nextPiece);
+        if (!w.addPieceIfValid(nextPiece))
+            onLoss();
 
         System.out.println("Quicktime Event Passed.");
 
         ((FirstCircleGUI)currentGUI).deactivateQuicktimeEvent();
+
+        float percentComplete = qtEvent.getTime() / qtEvent.getTimeLimit();
+
+        String qtMsg;
+        if (percentComplete >= 0 && percentComplete <= 0.25f)
+            qtMsg = "Great!";
+        else if (percentComplete >= 0.25f && percentComplete <= 0.75f)
+            qtMsg = "Good!";
+        else
+            qtMsg = "Close!";
+
+        ((FirstCircleGUI)currentGUI).passQuicktimeEvent(qtMsg);
 
         qtEvent = null;
 
@@ -140,12 +158,8 @@ public class TetrisGame extends Game {
         nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
         resolveFilledRows();
 
-        if (w.anyFilledColumns()) {
-            System.out.println("You lose! Score: " + score);
-            gameLost = true;
-            dropTimer.stop();
-        } else
-            w.addPiece(nextPiece);
+        if (!w.addPieceIfValid(nextPiece))
+            onLoss();
 
         System.out.println("Quicktime Event Bypassed.");
 
@@ -162,6 +176,7 @@ public class TetrisGame extends Game {
         w.addPiece(nextPiece);
 
         ((FirstCircleGUI)currentGUI).deactivateQuicktimeEvent();
+        ((FirstCircleGUI)currentGUI).failQuicktimeEvent();
 
         qtEvent = null;
     }
@@ -174,7 +189,7 @@ public class TetrisGame extends Game {
         renderingEngine.setClearColor(new Color(0.1f, 0.1f, 0.1f, 1));
         if (currentGUI != null)
             removeGUI(currentGUI);
-        addGUI(currentGUI = new IntroGUI(this, width, height, WORLD_SIZE));
+        addGUI(currentGUI = new IntroGUI(this, width, height, WORLD_SIZE, DEMO_GOAL));
 
         score = 0;
         currentGUI.resetScore();
@@ -194,7 +209,7 @@ public class TetrisGame extends Game {
         dropTimer.setAction(this::timerTickCircle1);
 
         removeGUI(currentGUI);
-        currentGUI = new FirstCircleGUI(this, width, height, WORLD_SIZE);
+        currentGUI = new FirstCircleGUI(this, width, height, WORLD_SIZE, CIRCLE_1_GOAL);
         addGUI(currentGUI);
 
         score = 0;
@@ -229,7 +244,7 @@ public class TetrisGame extends Game {
     private void initCircle3() {
         gameLost = false;
         removeGUI(currentGUI);
-        currentGUI = new ThirdCircleGUI(this, width, height, WORLD_SIZE, adBlockTime);
+        currentGUI = new ThirdCircleGUI(this, width, height, WORLD_SIZE, adBlockTime, CIRCLE_3_GOAL);
         addGUI(currentGUI);
 
         renderingEngine.setClearColor(0, 0, 0, 0);
@@ -274,10 +289,14 @@ public class TetrisGame extends Game {
         gameLost = false;
         renderingEngine.setClearColor(0.65f, 0, 0, 0);
 
+        w.clearAll();
+        circle5PieceLimit = 15;
+        circle5PieceCount = circle5PieceLimit;
+        dropTimer.setAction(this::timerTickCircle5);
         dropTimer.start();
 
         removeGUI(currentGUI);
-        currentGUI = new FifthCircleGUI(this, width, height, WORLD_SIZE);
+        currentGUI = new FifthCircleGUI(this, width, height, WORLD_SIZE, CIRCLE_5_GOAL, circle5PieceLimit);
         addGUI(currentGUI);
 
         score = 0;
@@ -287,6 +306,12 @@ public class TetrisGame extends Game {
     private void initCircle6() {
         gameLost = false;
         renderingEngine.setClearColor(1, 0, 0, 0);
+
+        w.clearAll();
+
+        removeGUI(currentGUI);
+        currentGUI = new SixthCircleGUI(this, width, height, WORLD_SIZE);
+        addGUI(currentGUI);
 
         score = 0;
         currentGUI.resetScore();
@@ -381,7 +406,7 @@ public class TetrisGame extends Game {
     }
 
     private void updateDemo(float dt) {
-        if (score >= 100) {
+        if (score >= DEMO_GOAL) {
             gsm.changeState("Circle 1");
         }
     }
@@ -392,7 +417,7 @@ public class TetrisGame extends Game {
             qtEvent.tick(dt);
         }
 
-        if (score >= 400) {
+        if (score >= CIRCLE_1_GOAL) {
             gsm.changeState("Circle 2");
         }
     }
@@ -412,11 +437,10 @@ public class TetrisGame extends Game {
         }
 
         if (!adBlockReady) {
-            System.out.println(adBlockCooldown.getTime());
             ((ThirdCircleGUI)currentGUI).updateCooldown(adBlockCooldown.getTime());
         }
 
-        if (score >= 250) {
+        if (score >= CIRCLE_3_GOAL) {
             gsm.changeState("Circle 4");
         }
     }
@@ -435,10 +459,25 @@ public class TetrisGame extends Game {
             nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
             resolveFilledRows();
 
-            if (w.anyFilledColumns()) {
+            if (!w.addPieceIfValid(nextPiece)) {
                 onLoss();
-            } else
-                w.addPiece(nextPiece);
+            }
+        }
+    }
+
+    private void timerTickCircle5() {
+        if (!w.moveIfValid(nextPiece, 0, 1)) {
+            nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
+            resolveFilledColumns();
+
+            while (!w.addPieceIfValid(nextPiece)) {
+                nextPiece.translate(1, 0);
+            }
+            circle5PieceCount--;
+            ((FifthCircleGUI)currentGUI).updatePiecesLeft(circle5PieceCount, circle5PieceLimit);
+
+            if (circle5PieceCount <= 0)
+                onLoss();
         }
     }
 
@@ -468,6 +507,27 @@ public class TetrisGame extends Game {
             currentGUI.updateScore(points);
 
             w.fillEmptyRows(filledRows);
+        }
+    }
+
+    private void resolveFilledColumns() {
+        List<Integer> filledColumns = w.checkForFilledColumns();
+
+        if (filledColumns.size() > 0) {
+            for (int col : filledColumns) {
+                System.out.println("Column " + col + " filled.");
+                w.clearColumn(col);
+            }
+
+            int points = (50 * filledColumns.size()) + ((filledColumns.size() - 1) * 10);
+            score += points;
+            System.out.println("Scored " + points + " points! New Score: " + score);
+            currentGUI.updateScore(points);
+
+//            w.fillEmptyColumns(filledColumns);
+
+            circle5PieceCount = circle5PieceLimit;
+            ((FifthCircleGUI)currentGUI).updatePiecesLeft(circle5PieceCount, circle5PieceLimit);
         }
     }
 

@@ -15,7 +15,7 @@ import com.morph.engine.physics.components.Transform2D;
  */
 public class SecondCircleGUI extends TetrisGUI {
     public SecondCircleGUI(Game game, int width, int height, float worldSize) {
-        super(game, width, height, worldSize);
+        super(game, width, height, worldSize, 0);
     }
 
     public void load() {

@@ -12,7 +12,7 @@ import com.morph.engine.newgui.TextElement;
  * Created by Fernando on 3/6/2017.
  */
 public class IntroGUI extends TetrisGUI {
-    public IntroGUI(Game game, int width, int height, float worldSize) {
-        super(game, width, height, worldSize);
+    public IntroGUI(Game game, int width, int height, float worldSize, int goal) {
+        super(game, width, height, worldSize, goal);
     }
 }

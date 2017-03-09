@@ -13,8 +13,8 @@ public class ThirdCircleGUI extends TetrisGUI {
     private float adBlockCooldown;
     private boolean ready = false;
 
-    public ThirdCircleGUI(Game game, int width, int height, float worldSize, float adBlockCooldown) {
-        super(game, width, height, worldSize);
+    public ThirdCircleGUI(Game game, int width, int height, float worldSize, float adBlockCooldown, int goal) {
+        super(game, width, height, worldSize, goal);
         this.adBlockCooldown = adBlockCooldown;
     }
 

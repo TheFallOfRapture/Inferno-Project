@@ -35,6 +35,14 @@ public class TetrisWorld extends TileWorld {
         return addEntityGrid(p, p.getX(), p.getY());
     }
 
+    public boolean addPieceIfValid(Piece p) {
+        if (areEmpty(p.getBlockLocations())) {
+            return addPiece(p);
+        }
+
+        return false;
+    }
+
     public boolean removePiece(Piece p) {
         pieces.remove(p);
         for (int y = 0; y < p.getHeight(); y++) {
@@ -138,9 +146,30 @@ public class TetrisWorld extends TileWorld {
         return filledRows;
     }
 
+    public List<Integer> checkForEmptyColumns(int startCol) {
+        List<Integer> filledCols = IntStream.range(startCol, 0).boxed().collect(Collectors.toList());
+
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                if (getEntity(x, y) != null) {
+                    filledCols.remove((Integer)x);
+                    break;
+                }
+            }
+        }
+
+        return filledCols;
+    }
+
     public void clearRow(int row) {
         for (int i = 0; i < getWidth(); i++) {
             removeEntity(i, row);
+        }
+    }
+
+    public void clearColumn(int col) {
+        for (int i = 0; i < getHeight(); i++) {
+            removeEntity(col, i);
         }
     }
 
@@ -173,6 +202,24 @@ public class TetrisWorld extends TileWorld {
         }
     }
 
+    public void fillEmptyColumns(List<Integer> emptyColumns) {
+        List<Integer> remaining = emptyColumns;
+
+        while (remaining.size() > 0) {
+            for (int col : emptyColumns) {
+                int newCol = col + 1;
+                for (int x = newCol; x >= 0; x--) {
+                    for (int y = 0; y < getHeight(); y++) {
+                        if (getEntity(x, y) != null)
+                            translateEntity(x, y, -1, 0);
+                    }
+                }
+            }
+
+            remaining = checkForEmptyColumns(emptyColumns.get(0));
+        }
+    }
+
     public boolean anyFilledColumns() {
         for (int x = 0; x < getWidth(); x++) {
             if (getEntity(x, 0) != null) {
@@ -202,5 +249,35 @@ public class TetrisWorld extends TileWorld {
                 }
             }
         }
+    }
+
+    public List<Integer> checkForFilledColumns() {
+        List<Integer> filledCols = IntStream.range(0, getWidth()).boxed().collect(Collectors.toList());
+
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                if (getEntity(x, y) == null) {
+                    filledCols.remove((Integer)x);
+                    break;
+                }
+            }
+        }
+
+        return filledCols;
+    }
+
+    public List<Integer> checkForFilledColumns(int startCol) {
+        List<Integer> filledCols = IntStream.range(startCol, getWidth()).boxed().collect(Collectors.toList());
+
+        for (int x = 0; x < getWidth(); x++) {
+            for (int y = 0; y < getHeight(); y++) {
+                if (getEntity(x, y) == null) {
+                    filledCols.remove((Integer)x);
+                    break;
+                }
+            }
+        }
+
+        return filledCols;
     }
 }
