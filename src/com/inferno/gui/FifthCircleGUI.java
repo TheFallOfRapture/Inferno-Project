@@ -16,6 +16,6 @@ public class FifthCircleGUI extends TetrisGUI {
     public void load() {
         super.load();
 
-        addElement(new TextElement("Circle 5", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(570, 60), -20));
+        addElement(new TextElement("Circle 5", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(570, 60), -20));
     }
 }

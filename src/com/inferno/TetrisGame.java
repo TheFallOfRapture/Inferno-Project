@@ -30,6 +30,9 @@ public class TetrisGame extends Game {
     private StateMachine gsm;
 
     private boolean gameLost = false;
+    private boolean restartGame = false;
+
+    private String restartState = "Demo";
 
     private float dropInterval = 1.0f; // Time in seconds that a piece takes to drop one level
     private float regularDropInterval = 1.0f;
@@ -39,6 +42,7 @@ public class TetrisGame extends Game {
 
     private Stopwatch qtEvent;
     private TetrisGUI currentGUI;
+    private LossGUI lossGUI;
 
     private float qtTimeLimit = 2.5f;
 
@@ -62,7 +66,6 @@ public class TetrisGame extends Game {
 
     @Override
     public void initGame() {
-        renderingEngine.setClearColor(new Color(0.1f, 0.1f, 0.1f, 1));
         float ratio = (float) width / (float) height;
         GLRenderingEngine.setProjectionMatrix(MatrixUtils.getOrthographicProjectionMatrix(WORLD_SIZE, 0, 0, WORLD_SIZE * ratio, -1, 1));
         w = getWorld();
@@ -74,14 +77,11 @@ public class TetrisGame extends Game {
         dropTimer = new Timer(dropInterval, this::timerTick);
         dropTimer.start();
 
-        float panelWidth = 12.5f * WORLD_SIZE;
-
-        addGUI(currentGUI = new IntroGUI(this, width, height, WORLD_SIZE));
-
         gsm = new StateMachine(new State("Demo"));
 
         gsm.addPossibilities("Main Menu", "Demo", "Circle 1", "Circle 2", "Circle 3", "Circle 4", "Circle 4: Red", "Circle 4: Green", "Circle 4: Blue",
-                "Circle 5", "Circle 6", "End Screen");
+                "Circle 5", "Circle 6", "End Screen", "Loss");
+        gsm.addTransition("*", "Demo", this::initDemo);
         gsm.addTransition("*", "Circle 1", this::initCircle1);
         gsm.addTransition("*", "Circle 2", this::initCircle2);
         gsm.addTransition("*", "Circle 3", this::initCircle3);
@@ -91,6 +91,9 @@ public class TetrisGame extends Game {
         gsm.addTransition("*", "Circle 4: Blue", this::initCircle4Blue);
         gsm.addTransition("*", "Circle 5", this::initCircle5);
         gsm.addTransition("*", "Circle 6", this::initCircle6);
+        gsm.addTransition("*", "Loss", this::initLoss);
+
+        initDemo();
     }
 
     private void timerTickCircle1() {
@@ -163,7 +166,22 @@ public class TetrisGame extends Game {
         qtEvent = null;
     }
 
+    private void initDemo() {
+        gameLost = false;
+
+        w.clearAll();
+
+        renderingEngine.setClearColor(new Color(0.1f, 0.1f, 0.1f, 1));
+        if (currentGUI != null)
+            removeGUI(currentGUI);
+        addGUI(currentGUI = new IntroGUI(this, width, height, WORLD_SIZE));
+
+        score = 0;
+        currentGUI.resetScore();
+    }
+
     private void initCircle1() {
+        gameLost = false;
         System.out.println("Entering Circle 1.");
 
         w.clearAll();
@@ -180,10 +198,11 @@ public class TetrisGame extends Game {
         addGUI(currentGUI);
 
         score = 0;
-        currentGUI.updateScore(0);
+        currentGUI.resetScore();
     }
 
     private void initCircle2() {
+        gameLost = false;
         System.out.println("Entering Circle 2.");
 
         w.clearAll();
@@ -203,11 +222,12 @@ public class TetrisGame extends Game {
         paywallTimer.start();
 
         score = 0;
-        currentGUI.updateScore(0);
+        currentGUI.resetScore();
     }
 
     // TODO: Complete circles
     private void initCircle3() {
+        gameLost = false;
         removeGUI(currentGUI);
         currentGUI = new ThirdCircleGUI(this, width, height, WORLD_SIZE, adBlockTime);
         addGUI(currentGUI);
@@ -230,10 +250,11 @@ public class TetrisGame extends Game {
         adBlockCooldown = new Stopwatch(adBlockTime, () -> {}, this::restoreAdBlock);
 
         score = 0;
-        currentGUI.updateScore(0);
+        currentGUI.resetScore();
     }
 
     private void initCircle4() {
+        gameLost = false;
         System.out.println("Entering Circle 4.");
 
         renderingEngine.setClearColor(0.4f, 0, 0, 0);
@@ -246,10 +267,11 @@ public class TetrisGame extends Game {
         addGUI(currentGUI);
 
         score = 0;
-        currentGUI.updateScore(0);
+        currentGUI.resetScore();
     }
 
     private void initCircle5() {
+        gameLost = false;
         renderingEngine.setClearColor(0.65f, 0, 0, 0);
 
         dropTimer.start();
@@ -259,32 +281,40 @@ public class TetrisGame extends Game {
         addGUI(currentGUI);
 
         score = 0;
-        currentGUI.updateScore(0);
+        currentGUI.resetScore();
     }
 
     private void initCircle6() {
+        gameLost = false;
         renderingEngine.setClearColor(1, 0, 0, 0);
 
         score = 0;
-        currentGUI.updateScore(0);
+        currentGUI.resetScore();
     }
 
     private void initCircle4Red() {
+        gameLost = false;
         removeGUI(currentGUI);
         currentGUI = new FourthCircleRedGUI(this, width, height, WORLD_SIZE);
         addGUI(currentGUI);
     }
 
     private void initCircle4Green() {
+        gameLost = false;
         removeGUI(currentGUI);
         currentGUI = new FourthCircleGreenGUI(this, width, height, WORLD_SIZE);
         addGUI(currentGUI);
     }
 
     private void initCircle4Blue() {
+        gameLost = false;
         removeGUI(currentGUI);
         currentGUI = new FourthCircleBlueGUI(this, width, height, WORLD_SIZE);
         addGUI(currentGUI);
+    }
+
+    private void initLoss() {
+        addGUI(lossGUI = new LossGUI(this, gsm.getCurrentStateName()));
     }
 
     private void useAdBlock() {
@@ -310,8 +340,13 @@ public class TetrisGame extends Game {
     @Override
     public void fixedGameUpdate(float dt) {
         dropTimer.step(dt);
+        if (restartGame) {
+            restartWithState(restartState);
+        }
 
         switch (gsm.getCurrentStateName()) {
+            case "Loss":
+                break;
             case "Demo":
                 updateDemo(dt);
                 break;
@@ -334,6 +369,15 @@ public class TetrisGame extends Game {
                 updateCircle6(dt);
                 break;
         }
+    }
+
+    public void restartWithState(String state) {
+        gameLost = false;
+        removeGUI(lossGUI);
+        gsm.changeState(state);
+        dropTimer.start();
+
+        restartGame = false;
     }
 
     private void updateDemo(float dt) {
@@ -392,12 +436,22 @@ public class TetrisGame extends Game {
             resolveFilledRows();
 
             if (w.anyFilledColumns()) {
-                System.out.println("You lose! Score: " + score);
-                gameLost = true;
-                dropTimer.stop();
+                onLoss();
             } else
                 w.addPiece(nextPiece);
         }
+    }
+
+    private void onLoss() {
+        System.out.println("You lose! Score: " + score);
+        gameLost = true;
+        gsm.changeState("Loss");
+        dropTimer.stop();
+    }
+
+    public void signalRestart(String state) {
+        restartGame = true;
+        restartState = state;
     }
 
     private void resolveFilledRows() {
@@ -411,7 +465,7 @@ public class TetrisGame extends Game {
             int points = (50 * filledRows.size()) + ((filledRows.size() - 1) * 10);
             score += points;
             System.out.println("Scored " + points + " points! New Score: " + score);
-            currentGUI.updateScore(score);
+            currentGUI.updateScore(points);
 
             w.fillEmptyRows(filledRows);
         }
@@ -489,6 +543,10 @@ public class TetrisGame extends Game {
 
         if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_Q) && qtEvent != null && !qtEvent.isStopped() && gsm.isCurrentState("Circle 1")) {
             qtEvent.interrupt();
+        }
+
+        if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_L)) {
+            onLoss();
         }
     }
 }

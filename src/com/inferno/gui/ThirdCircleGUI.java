@@ -21,21 +21,21 @@ public class ThirdCircleGUI extends TetrisGUI {
     public void load() {
         super.load();
 
-        addElement(new TextElement("Circle 3", "fonts/Ubuntu/Ubuntu-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(570, 60), -20));
-        addElement(new TextElement("AdBlock (B)", "fonts/Ubuntu/Ubuntu-Regular.ttf", 48, new Color(1, 1, 1), new Vector2f(570, 200), -20));
-        adBlockCdText = new TextElement("Ready", "fonts/Ubuntu/Ubuntu-Regular.ttf", 48, new Color(0, 1, 0), new Vector2f(570, 150), -20);
+        addElement(new TextElement("Circle 3", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(570, 60), -20));
+        addElement(new TextElement("AdBlock (B)", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 36, new Color(1, 1, 1), new Vector2f(570, 200), -20));
+        adBlockCdText = new TextElement("Ready", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 48, new Color(0, 1, 0), new Vector2f(570, 150), -20);
         addElement(adBlockCdText);
     }
 
     public void setOnCooldown() {
         removeElement(adBlockCdText);
-        adBlockCdText = new TextElement("Waiting...", "fonts/Ubuntu/Ubuntu-Regular.ttf", 48, new Color(1, 0, 0), new Vector2f(570, 150), -20);
+        adBlockCdText = new TextElement("Waiting...", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 48, new Color(1, 0, 0), new Vector2f(570, 150), -20);
         addElement(adBlockCdText);
     }
 
     public void setOffCooldown() {
         removeElement(adBlockCdText);
-        adBlockCdText = new TextElement("Ready", "fonts/Ubuntu/Ubuntu-Regular.ttf", 48, new Color(0, 1, 0), new Vector2f(570, 150), -20);
+        adBlockCdText = new TextElement("Ready", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 48, new Color(0, 1, 0), new Vector2f(570, 150), -20);
         addElement(adBlockCdText);
     }
 

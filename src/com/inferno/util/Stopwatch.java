@@ -1,5 +1,8 @@
 package com.inferno.util;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 /**
  * Created by Fernando on 3/5/2017.
  */
@@ -9,6 +12,7 @@ public class Stopwatch {
     private boolean stopped;
     private float limit;
     private float accumulator;
+    private BiConsumer<Float, Float> tickAction;
     private Runnable interruptedAction;
     private Runnable stoppedAction;
 
@@ -16,6 +20,7 @@ public class Stopwatch {
         this.limit = limit;
         this.interruptedAction = interruptedAction;
         this.stoppedAction = stoppedAction;
+        this.tickAction = (time, timeLimit) -> {};
         running = false;
         stopped = false;
         interrupted = false;
@@ -32,6 +37,7 @@ public class Stopwatch {
                 stopped = true;
             }
 
+            tickAction.accept(accumulator, limit);
             accumulator += dt;
         }
     }
@@ -51,6 +57,10 @@ public class Stopwatch {
 
     public boolean isStopped() {
         return stopped;
+    }
+
+    public void setTickAction(BiConsumer<Float, Float> tick) {
+        this.tickAction = tick;
     }
 
     public float getTimeLimit() {

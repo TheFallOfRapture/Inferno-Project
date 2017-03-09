@@ -26,20 +26,20 @@ public class FourthCircleRedGUI extends TetrisGUI {
 
         addElement(panel);
 
-        TextElement a = TextElement.centerXWithin("Congratulations!", "fonts/Ubuntu/Ubuntu-Regular.ttf", 32, new Color(1, 1, 1), panel);
-        TextElement b = TextElement.centerXWithin("You got the red ending!", "fonts/Ubuntu/Ubuntu-Regular.ttf", 32, new Color(1, 0, 0), panel);
+        TextElement a = TextElement.centerXWithin("Congratulations!", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(1, 1, 1), panel);
+        TextElement b = TextElement.centerXWithin("You got the red ending!", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(1, 0, 0), panel);
 
         Vector2f aa = new Vector2f(a.getTransform().getPosition().getX(), 470);
         Vector2f bb = new Vector2f(b.getTransform().getPosition().getX(), 430);
 
-        TextElement aaa = new TextElement("Congratulations!", "fonts/Ubuntu/Ubuntu-Regular.ttf", 32, new Color(1, 1, 1), aa, -40);
-        TextElement bbb = new TextElement("You got the red ending!", "fonts/Ubuntu/Ubuntu-Regular.ttf", 32, new Color(1, 0, 0), bb, -40);
+        TextElement aaa = new TextElement("Congratulations!", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(1, 1, 1), aa, -40);
+        TextElement bbb = new TextElement("You got the red ending!", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(1, 0, 0), bb, -40);
 
         addElement(aaa);
         addElement(bbb);
 
         Button nextButton = new Button("Circle 5",
-                "fonts/Ubuntu/Ubuntu-Regular.ttf",
+                "fonts/Roboto Mono/RobotoMono-Regular.ttf",
                 18,
                 new Color(0, 0, 0),
                 new Color(1, 1, 1),
@@ -49,6 +49,10 @@ public class FourthCircleRedGUI extends TetrisGUI {
                 -36);
 
         nextButton.setOnClick(() -> ((TetrisGame)getGame()).getStateMachine().changeState("Circle 5"));
+
+        Panel me3DLCImage = new Panel(new Vector2f(245, 214), new Vector2f(310, 193), new Texture("textures/mass effect dlc.jpg"));
+        me3DLCImage.setDepth(-36);
+        addElement(me3DLCImage);
 
         addElement(nextButton);
     }
