@@ -35,6 +35,7 @@ public class Stopwatch {
             if (accumulator >= limit) {
                 stoppedAction.run();
                 stopped = true;
+                running = false;
             }
 
             tickAction.accept(accumulator, limit);
@@ -45,6 +46,19 @@ public class Stopwatch {
     public void interrupt() {
         interruptedAction.run();
         interrupted = true;
+    }
+
+    public void restart() {
+        running = true;
+        stopped = false;
+        interrupted = false;
+        accumulator = 0;
+    }
+
+    public void endTimer() {
+        running = false;
+        stopped = true;
+        interrupted = false;
     }
 
     public boolean isInterrupted() {
@@ -61,6 +75,10 @@ public class Stopwatch {
 
     public void setTickAction(BiConsumer<Float, Float> tick) {
         this.tickAction = tick;
+    }
+
+    public void setStoppedAction(Runnable stoppedAction) {
+        this.stoppedAction = stoppedAction;
     }
 
     public float getTimeLimit() {

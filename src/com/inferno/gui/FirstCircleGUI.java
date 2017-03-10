@@ -33,6 +33,9 @@ public class FirstCircleGUI extends TetrisGUI {
         this.timerMax = timer;
 
         addElement(qtEventButton);
+
+        if (qtMessageTimer != null)
+            qtMessageTimer.interrupt();
     }
 
     public void deactivateQuicktimeEvent() {
@@ -104,5 +107,9 @@ public class FirstCircleGUI extends TetrisGUI {
         if (qtMessageTimer != null) {
             qtMessageTimer.tick(dt);
         }
+    }
+
+    public void onLoss() {
+        qtMessageTimer.endTimer();
     }
 }

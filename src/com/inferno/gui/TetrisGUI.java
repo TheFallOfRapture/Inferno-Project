@@ -44,10 +44,10 @@ public class TetrisGUI extends GUI {
         addElement(new Panel(new Vector2f(0, 0), new Vector2f(panelWidth, height), new Color(0.05f, 0.05f, 0.05f), new Texture("textures/solid.png")));
         addElement(new Panel(new Vector2f(width - panelWidth, 0), new Vector2f(panelWidth, height), new Color(0.05f, 0.05f, 0.05f), new Texture("textures/solid.png")));
 
-        addElement(new TextElement("TETRIS", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(90, 540), -20));
-        addElement(new TextElement("from HELL", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(1, 0, 0), new Vector2f(75, 505), -20));
+        addElement(new TextElement("TETRIS", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(160, 540), -20));
+        addElement(new TextElement("from HELL", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(0.5f, 0.05f, 0.05f), new Vector2f(130, 505), -20));
 
-        addElement(new TextElement("Fernando Gonzalez", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(32, 60), -20));
+        addElement(new TextElement("Fernando Gonzalez", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 24, new Color(1, 1, 1), new Vector2f(39, 60), -20));
 
         addElement(new TextElement("Score", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 64, new Color(1, 1, 1), new Vector2f(570, 520), -20));
         scoreText = new TextElement("0", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(0, 1, 0), new Vector2f(570, 480), -20);
@@ -70,14 +70,30 @@ public class TetrisGUI extends GUI {
         addElement(scoreText);
     }
 
-    public void updateScore(int points) {
+    public void updateScore(int points, int lines) {
         this.score += points;
         removeElement(scoreText);
         addElement(scoreText = new TextElement(Integer.toString(score), "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(0, 1, 0), new Vector2f(570, 480), -20));
 
         Color scoreColor = new Color(0, ((points / 230f) * 0.5f) + 0.5f, 0);
 
-        addElement(scoreIncrementText = new TextElement("+" + Integer.toString(points), "fonts/Roboto Mono/RobotoMono-Regular.ttf", 28, new Color(0, 0.4f, 0), new Vector2f(575, 450), -20));
+        String msg = "";
+        switch (lines) {
+            case 1:
+                msg = "Single";
+                break;
+            case 2:
+                msg = "Double";
+                break;
+            case 3:
+                msg = "Triple";
+                break;
+            case 4:
+                msg = "Tetris";
+                break;
+        }
+
+        addElement(scoreIncrementText = new TextElement("+" + Integer.toString(points) + " [" + msg + "]", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 28, new Color(0, 0.4f, 0), new Vector2f(575, 450), -20));
 
         pointTimer = new Stopwatch(1.25f, () -> {}, () -> removeElement(scoreIncrementText));
         pointTimer.setTickAction((time, timeLimit) -> {

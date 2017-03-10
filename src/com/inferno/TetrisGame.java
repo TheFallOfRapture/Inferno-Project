@@ -34,9 +34,15 @@ public class TetrisGame extends Game {
 
     private String restartState = "Demo";
 
+    private boolean bypassLock = false;
+    private boolean advance = false;
+
     private float dropInterval = 1.0f; // Time in seconds that a piece takes to drop one level
     private float regularDropInterval = 1.0f;
     private Timer dropTimer;
+
+    private Stopwatch lockTimer;
+    private final float lockLimit = 0.25f;
 
     private int score = 0;
 
@@ -55,10 +61,10 @@ public class TetrisGame extends Game {
 
     private float adBlockTime = 2.5f;
 
-    private final int DEMO_GOAL = 100;
+    private final int DEMO_GOAL = 150;
     private final int CIRCLE_1_GOAL = 400;
     private final int CIRCLE_3_GOAL = 250;
-    private final int CIRCLE_5_GOAL = 200;
+    private final int CIRCLE_5_GOAL = 150;
 
     private int circle5PieceCount = 15;
     private int circle5PieceLimit = 15;
@@ -84,6 +90,8 @@ public class TetrisGame extends Game {
 
         dropTimer = new Timer(dropInterval, this::timerTick);
 
+        lockTimer = new Stopwatch(lockLimit, () -> {}, this::lockTimer);
+
         gsm = new StateMachine(new State("Demo"));
 
         gsm.addPossibilities("Main Menu", "Demo", "Circle 1", "Circle 2", "Circle 3", "Circle 4", "Circle 4: Red", "Circle 4: Green", "Circle 4: Blue",
@@ -103,28 +111,47 @@ public class TetrisGame extends Game {
         initDemo();
     }
 
-    private void timerTickCircle1() {
-        if (!w.moveIfValid(nextPiece, 0, 1)) {
-            int roll = (int) (Math.random() * 6) + 1;
-            if (qtEvent == null) {
-                if (roll <= 3) {
-                    System.out.println(qtTimeLimit);
-                    qtEvent = new Stopwatch(qtTimeLimit, this::quicktimeSuccess, this::quicktimeFailure);
-                    qtEvent.start();
+    private void lockTimer() {
+        System.out.println("Lock timer ended.");
+        nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
+        resolveFilledRows();
 
-                    ((FirstCircleGUI) currentGUI).activateQuicktimeEvent("Q", qtTimeLimit);
-
-                    qtTimeLimit -= 0.1 * qtTimeLimit;
-                } else
-                    bypassQuicktime();
-            }
+        if (!w.addPieceIfValid(nextPiece)) {
+            onLoss();
         }
+
+        dropTimer.restart();
+    }
+
+    private void activateQuicktimeEvent(boolean bypassLock) {
+        int roll = (int) (Math.random() * 6) + 1;
+        if (qtEvent == null) {
+            if (roll <= 3) {
+                System.out.println(qtTimeLimit);
+                qtEvent = new Stopwatch(qtTimeLimit, () -> {
+                    quicktimeSuccess();
+                    this.bypassLock = bypassLock;
+                }, this::quicktimeFailure);
+                qtEvent.start();
+
+                ((FirstCircleGUI) currentGUI).activateQuicktimeEvent("Q", qtTimeLimit);
+
+                qtTimeLimit -= 0.1 * qtTimeLimit;
+            } else
+                bypassQuicktime();
+        }
+    }
+
+    private void lockTimerCircle1() {
+        activateQuicktimeEvent(false);
+        dropTimer.restart();
     }
 
     private void quicktimeSuccess() {
         nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
         resolveFilledRows();
 
+        dropTimer.restart();
         if (!w.addPieceIfValid(nextPiece))
             onLoss();
 
@@ -155,6 +182,7 @@ public class TetrisGame extends Game {
         nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
         resolveFilledRows();
 
+        dropTimer.restart();
         if (!w.addPieceIfValid(nextPiece))
             onLoss();
 
@@ -174,6 +202,8 @@ public class TetrisGame extends Game {
 
         ((FirstCircleGUI)currentGUI).deactivateQuicktimeEvent();
         ((FirstCircleGUI)currentGUI).failQuicktimeEvent();
+
+        dropTimer.restart();
 
         qtEvent = null;
     }
@@ -206,7 +236,8 @@ public class TetrisGame extends Game {
         dropInterval = 0.75f;
         regularDropInterval = 0.75f;
         dropTimer.setInterval(dropInterval);
-        dropTimer.setAction(this::timerTickCircle1);
+//        dropTimer.setAction(this::timerTickCircle1);
+        lockTimer.setStoppedAction(this::lockTimerCircle1);
 
         removeGUI(currentGUI);
         currentGUI = new FirstCircleGUI(this, width, height, WORLD_SIZE, CIRCLE_1_GOAL);
@@ -256,7 +287,7 @@ public class TetrisGame extends Game {
         dropInterval = 0.3f;
         regularDropInterval = dropInterval;
         dropTimer.setInterval(dropInterval);
-        dropTimer.setAction(this::timerTick);
+        lockTimer.setStoppedAction(this::lockTimer);
         dropTimer.start();
 
         adTimer = new Timer(7.5f, w::addAdRow);
@@ -292,7 +323,7 @@ public class TetrisGame extends Game {
         w.clearAll();
         circle5PieceLimit = 15;
         circle5PieceCount = circle5PieceLimit;
-        dropTimer.setAction(this::timerTickCircle5);
+        lockTimer.setStoppedAction(this::lockTimerCircle5);
         dropTimer.start();
 
         removeGUI(currentGUI);
@@ -365,6 +396,8 @@ public class TetrisGame extends Game {
     @Override
     public void fixedGameUpdate(float dt) {
         dropTimer.step(dt);
+        lockTimer.tick(dt);
+
         if (restartGame) {
             restartWithState(restartState);
         }
@@ -407,6 +440,7 @@ public class TetrisGame extends Game {
 
     private void updateDemo(float dt) {
         if (score >= DEMO_GOAL) {
+            advance = true;
             gsm.changeState("Circle 1");
         }
     }
@@ -418,6 +452,7 @@ public class TetrisGame extends Game {
         }
 
         if (score >= CIRCLE_1_GOAL) {
+            advance = true;
             gsm.changeState("Circle 2");
         }
     }
@@ -441,6 +476,7 @@ public class TetrisGame extends Game {
         }
 
         if (score >= CIRCLE_3_GOAL) {
+            advance = true;
             gsm.changeState("Circle 4");
         }
     }
@@ -456,29 +492,46 @@ public class TetrisGame extends Game {
 
     private void timerTick() {
         if (!w.moveIfValid(nextPiece, 0, 1)) {
-            nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
-            resolveFilledRows();
-
-            if (!w.addPieceIfValid(nextPiece)) {
-                onLoss();
+            if (!bypassLock && !advance) {
+                dropTimer.stop();
+                lockTimer.restart();
+            } else {
+                bypassLock = false;
+                advance = false;
             }
         }
     }
 
     private void timerTickCircle5() {
         if (!w.moveIfValid(nextPiece, 0, 1)) {
-            nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
-            resolveFilledColumns();
-
-            while (!w.addPieceIfValid(nextPiece)) {
-                nextPiece.translate(1, 0);
+            if (!bypassLock) {
+                dropTimer.stop();
+                lockTimer.restart();
+            } else {
+                bypassLock = false;
+                decrementPieces();
             }
-            circle5PieceCount--;
-            ((FifthCircleGUI)currentGUI).updatePiecesLeft(circle5PieceCount, circle5PieceLimit);
-
-            if (circle5PieceCount <= 0)
-                onLoss();
         }
+    }
+
+    private void decrementPieces() {
+        circle5PieceCount--;
+        ((FifthCircleGUI)currentGUI).updatePiecesLeft(circle5PieceCount, circle5PieceLimit);
+
+        if (circle5PieceCount <= 0)
+            onLoss();
+    }
+
+    private void lockTimerCircle5() {
+        nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
+        resolveFilledColumns();
+
+        while (!w.addPieceIfValid(nextPiece)) {
+            nextPiece.translate(1, 0);
+        }
+
+        decrementPieces();
+        dropTimer.restart();
     }
 
     private void onLoss() {
@@ -504,7 +557,7 @@ public class TetrisGame extends Game {
             int points = (50 * filledRows.size()) + ((filledRows.size() - 1) * 10);
             score += points;
             System.out.println("Scored " + points + " points! New Score: " + score);
-            currentGUI.updateScore(points);
+            currentGUI.updateScore(points, filledRows.size());
 
             w.fillEmptyRows(filledRows);
         }
@@ -522,7 +575,7 @@ public class TetrisGame extends Game {
             int points = (50 * filledColumns.size()) + ((filledColumns.size() - 1) * 10);
             score += points;
             System.out.println("Scored " + points + " points! New Score: " + score);
-            currentGUI.updateScore(points);
+            currentGUI.updateScore(points, filledColumns.size());
 
             circle5PieceCount = circle5PieceLimit;
             ((FifthCircleGUI)currentGUI).updatePiecesLeft(circle5PieceCount, circle5PieceLimit);
@@ -537,30 +590,69 @@ public class TetrisGame extends Game {
     public void handleInput() {
         if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_LEFT) && !gameLost) {
             w.moveIfValid(nextPiece, -1, 0);
+            if (lockTimer.isRunning() && !lockTimer.isStopped())
+                lockTimer.restart();
         }
 
         if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_RIGHT) && !gameLost) {
             w.moveIfValid(nextPiece, 1, 0);
+            if (lockTimer.isRunning() && !lockTimer.isStopped())
+                lockTimer.restart();
         }
 
         if ((Keyboard.isKeyPressed(GLFW.GLFW_KEY_UP) || Keyboard.isKeyPressed(GLFW.GLFW_KEY_X)) && !gameLost) {
             Piece newPiece = nextPiece.rotateRight();
             if (w.moveIfValid(nextPiece, newPiece))
                 nextPiece = newPiece;
+            if (lockTimer.isRunning() && !lockTimer.isStopped())
+                lockTimer.restart();
         }
 
         if ((Keyboard.isKeyPressed(GLFW.GLFW_KEY_LEFT_CONTROL) || Keyboard.isKeyPressed(GLFW.GLFW_KEY_Z)) && !gameLost) {
             Piece newPiece = nextPiece.rotateLeft();
             if (w.moveIfValid(nextPiece, newPiece))
                 nextPiece = newPiece;
+            if (lockTimer.isRunning() && !lockTimer.isStopped())
+                lockTimer.restart();
         }
 
         if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_SPACE) && !gameLost) {
             w.moveToBottom(nextPiece);
+
+            if (gsm.getCurrentStateName().equals("Circle 1")) {
+                activateQuicktimeEvent(true);
+            } else if (!gsm.getCurrentStateName().equals("Circle 5")) {
+                dropTimer.stop();
+                nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
+                resolveFilledRows();
+
+                dropTimer.restart();
+
+                if (!w.addPieceIfValid(nextPiece)) {
+                    onLoss();
+                }
+
+                if (gsm.getCurrentStateName().equals("Circle 5"))
+                    decrementPieces();
+            } else if (gsm.getCurrentStateName().equals("Circle 5")) {
+                dropTimer.stop();
+                nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
+                resolveFilledRows();
+
+                while (!w.addPieceIfValid(nextPiece)) {
+                    nextPiece.translate(1, 0);
+                }
+
+                dropTimer.restart();
+
+                decrementPieces();
+            }
+
+            bypassLock = true;
         }
 
         if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_DOWN) && !gameLost) {
-            dropInterval = 0.1f;
+            dropInterval = 0.05f;
             dropTimer.setInterval(dropInterval);
         }
 
