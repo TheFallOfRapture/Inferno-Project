@@ -63,16 +63,17 @@ public class PieceFactory {
     }
 
     private static Piece getI() {
-        Piece piece = new Piece(4, 1);
+        Piece piece = new Piece(4, 4);
         Entity[] blocks = new Entity[4];
         for (int i = 0; i < 4; i++) {
             blocks[i] = TetrisEntityFactory.getBlock("I-" + count + i, new Color(0, 1, 1), 1);
         }
 
-        piece.addEntity(blocks[0], 0, 0);
-        piece.addEntity(blocks[1], 1, 0);
-        piece.addEntity(blocks[2], 2, 0);
-        piece.addEntity(blocks[3], 3, 0);
+        piece.addEntity(blocks[0], 0, 1);
+        piece.addEntity(blocks[1], 1, 1);
+        piece.addEntity(blocks[2], 2, 1);
+        piece.addEntity(blocks[3], 3, 1);
+        piece.setY(-1);
 
         count += 4;
 
@@ -97,7 +98,7 @@ public class PieceFactory {
     }
 
     private static Piece getT() {
-        Piece piece = new Piece(3, 2);
+        Piece piece = new Piece(3, 3);
         Entity[] blocks = new Entity[4];
         for (int i = 0; i < 4; i++) {
             blocks[i] = TetrisEntityFactory.getBlock("T-" + count + i, new Color(1, 0, 1), 1);
@@ -114,7 +115,7 @@ public class PieceFactory {
     }
 
     private static Piece getJ() {
-        Piece piece = new Piece(3, 2);
+        Piece piece = new Piece(3, 3);
         Entity[] blocks = new Entity[4];
         for (int i = 0; i < 4; i++) {
             blocks[i] = TetrisEntityFactory.getBlock("J-" + count + i, new Color(0, 0, 1), 1);
@@ -131,7 +132,7 @@ public class PieceFactory {
     }
 
     private static Piece getL() {
-        Piece piece = new Piece(3, 2);
+        Piece piece = new Piece(3, 3);
         Entity[] blocks = new Entity[4];
         for (int i = 0; i < 4; i++) {
             blocks[i] = TetrisEntityFactory.getBlock("L-" + count + i, new Color(1, 0.5f, 0), 1);
@@ -148,7 +149,7 @@ public class PieceFactory {
     }
 
     private static Piece getS() {
-        Piece piece = new Piece(3, 2);
+        Piece piece = new Piece(3, 3);
         Entity[] blocks = new Entity[4];
         for (int i = 0; i < 4; i++) {
             blocks[i] = TetrisEntityFactory.getBlock("S-" + count + i, new Color(0, 1, 0), 1);
@@ -165,7 +166,7 @@ public class PieceFactory {
     }
 
     private static Piece getZ() {
-        Piece piece = new Piece(3, 2);
+        Piece piece = new Piece(3, 3);
         Entity[] blocks = new Entity[4];
         for (int i = 0; i < 4; i++) {
             blocks[i] = TetrisEntityFactory.getBlock("Z-" + count + i, new Color(1, 0, 0), 1);

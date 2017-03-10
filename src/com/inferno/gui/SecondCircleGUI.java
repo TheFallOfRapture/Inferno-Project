@@ -44,7 +44,7 @@ public class SecondCircleGUI extends TetrisGUI {
         logo.setDepth(-37);
         addElement(logo);
 
-        addElement(new Button("Purchase DLC ($4.99)",
+        Button exitButton = new Button("Exit",
                 "fonts/Roboto Mono/RobotoMono-Regular.ttf",
                 18,
                 new Color(0, 0, 0),
@@ -52,9 +52,9 @@ public class SecondCircleGUI extends TetrisGUI {
                 new Texture("textures/solid.png"),
                 new Texture("textures/solid.png"),
                 new Transform2D(new Vector2f(300, 145), new Vector2f(180, 50)),
-                -36));
+                -36);
 
-        Button nextButton = new Button("Proceed to Circle 3",
+        Button nextButton = new Button("Purchase DLC ($4.99)",
                 "fonts/Roboto Mono/RobotoMono-Regular.ttf",
                 18,
                 new Color(0, 0, 0),
@@ -64,8 +64,10 @@ public class SecondCircleGUI extends TetrisGUI {
                 new Transform2D(new Vector2f(500, 145), new Vector2f(180, 50)),
                 -36);
 
+        exitButton.setOnClick(getGame()::stop);
         nextButton.setOnClick(() -> ((TetrisGame)getGame()).getStateMachine().changeState("Circle 3"));
 
         addElement(nextButton);
+        addElement(exitButton);
     }
 }

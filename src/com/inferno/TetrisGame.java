@@ -32,8 +32,6 @@ public class TetrisGame extends Game {
     private boolean gameLost = false;
     private boolean restartGame = false;
 
-    private int pieceXOffset = 0;
-
     private String restartState = "Demo";
 
     private float dropInterval = 1.0f; // Time in seconds that a piece takes to drop one level
@@ -46,7 +44,7 @@ public class TetrisGame extends Game {
     private TetrisGUI currentGUI;
     private LossGUI lossGUI;
 
-    private float qtTimeLimit = 2.5f;
+    private float qtTimeLimit;
 
     private Stopwatch paywallTimer;
 
@@ -85,7 +83,6 @@ public class TetrisGame extends Game {
         w.addPiece(nextPiece);
 
         dropTimer = new Timer(dropInterval, this::timerTick);
-        dropTimer.start();
 
         gsm = new StateMachine(new State("Demo"));
 
@@ -185,6 +182,7 @@ public class TetrisGame extends Game {
         gameLost = false;
 
         w.clearAll();
+        dropTimer.start();
 
         renderingEngine.setClearColor(new Color(0.1f, 0.1f, 0.1f, 1));
         if (currentGUI != null)
@@ -202,6 +200,8 @@ public class TetrisGame extends Game {
         w.clearAll();
 
         renderingEngine.setClearColor(0.05f, 0, 0, 0);
+
+        qtTimeLimit = 2.5f;
 
         dropInterval = 0.75f;
         regularDropInterval = 0.75f;
@@ -524,8 +524,6 @@ public class TetrisGame extends Game {
             System.out.println("Scored " + points + " points! New Score: " + score);
             currentGUI.updateScore(points);
 
-//            w.fillEmptyColumns(filledColumns);
-
             circle5PieceCount = circle5PieceLimit;
             ((FifthCircleGUI)currentGUI).updatePiecesLeft(circle5PieceCount, circle5PieceLimit);
         }
@@ -537,22 +535,22 @@ public class TetrisGame extends Game {
 
     @Override
     public void handleInput() {
-        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_A) && !gameLost) {
+        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_LEFT) && !gameLost) {
             w.moveIfValid(nextPiece, -1, 0);
         }
 
-        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_D) && !gameLost) {
+        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_RIGHT) && !gameLost) {
             w.moveIfValid(nextPiece, 1, 0);
         }
 
-        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_LEFT) && !gameLost) {
-            Piece newPiece = nextPiece.rotateLeft();
+        if ((Keyboard.isKeyPressed(GLFW.GLFW_KEY_UP) || Keyboard.isKeyPressed(GLFW.GLFW_KEY_X)) && !gameLost) {
+            Piece newPiece = nextPiece.rotateRight();
             if (w.moveIfValid(nextPiece, newPiece))
                 nextPiece = newPiece;
         }
 
-        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_RIGHT) && !gameLost) {
-            Piece newPiece = nextPiece.rotateRight();
+        if ((Keyboard.isKeyPressed(GLFW.GLFW_KEY_LEFT_CONTROL) || Keyboard.isKeyPressed(GLFW.GLFW_KEY_Z)) && !gameLost) {
+            Piece newPiece = nextPiece.rotateLeft();
             if (w.moveIfValid(nextPiece, newPiece))
                 nextPiece = newPiece;
         }
@@ -561,12 +559,12 @@ public class TetrisGame extends Game {
             w.moveToBottom(nextPiece);
         }
 
-        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_S) && !gameLost) {
-            dropInterval = 0.05f;
+        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_DOWN) && !gameLost) {
+            dropInterval = 0.1f;
             dropTimer.setInterval(dropInterval);
         }
 
-        if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_S) && !gameLost) {
+        if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_DOWN) && !gameLost) {
             dropInterval = regularDropInterval;
             dropTimer.setInterval(dropInterval);
         }
