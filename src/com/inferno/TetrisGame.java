@@ -95,7 +95,7 @@ public class TetrisGame extends Game {
         gsm = new StateMachine(new State("Demo"));
 
         gsm.addPossibilities("Main Menu", "Demo", "Circle 1", "Circle 2", "Circle 3", "Circle 4", "Circle 4: Red", "Circle 4: Green", "Circle 4: Blue",
-                "Circle 5", "Circle 6", "End Screen", "Loss");
+                "Circle 5", "Circle 6", "End Screen", "Loss", "Infinite Tetris");
         gsm.addTransition("*", "Demo", this::initDemo);
         gsm.addTransition("*", "Circle 1", this::initCircle1);
         gsm.addTransition("*", "Circle 2", this::initCircle2);
@@ -107,6 +107,7 @@ public class TetrisGame extends Game {
         gsm.addTransition("*", "Circle 5", this::initCircle5);
         gsm.addTransition("*", "Circle 6", this::initCircle6);
         gsm.addTransition("*", "Loss", this::initLoss);
+        gsm.addTransition("*", "Infinite Tetris", this::initInfiniteTetris);
 
         initDemo();
     }
@@ -373,6 +374,25 @@ public class TetrisGame extends Game {
         addGUI(lossGUI = new LossGUI(this, gsm.getCurrentStateName()));
     }
 
+    private void initInfiniteTetris() {
+        gameLost = false;
+        renderingEngine.setClearColor(0.1f, 0.1f, 0.1f, 0);
+
+        w.clearAll();
+
+        nextPiece = PieceFactory.getPiece(PieceFactory.PieceType.RANDOM);
+        w.addPiece(nextPiece);
+
+        dropInterval = 1.0f;
+        regularDropInterval = dropInterval;
+        dropTimer.setInterval(dropInterval);
+        lockTimer.setStoppedAction(this::lockTimer);
+        dropTimer.start();
+
+        removeGUI(currentGUI);
+        addGUI(currentGUI = new InfiniteTetrisGUI(this, width, height, WORLD_SIZE));
+    }
+
     private void useAdBlock() {
         w.removeAllAds();
         adBlockCooldown = new Stopwatch(adBlockTime, () -> {}, this::restoreAdBlock);
@@ -425,6 +445,9 @@ public class TetrisGame extends Game {
                 break;
             case "Circle 6":
                 updateCircle6(dt);
+                break;
+            case "Infinite Tetris":
+                updateInfiniteTetris(dt);
                 break;
         }
     }
@@ -484,6 +507,8 @@ public class TetrisGame extends Game {
     private void updateCircle4(float dt) {}
     private void updateCircle5(float dt) {}
     private void updateCircle6(float dt) {}
+
+    private void updateInfiniteTetris(float dt) {}
 
     @Override
     public void postGameUpdate() {
@@ -697,6 +722,11 @@ public class TetrisGame extends Game {
 
         if (Keyboard.isKeyReleased(GLFW.GLFW_KEY_L)) {
             onLoss();
+        }
+
+        if (Keyboard.isKeyPressed(GLFW.GLFW_KEY_T)) {
+            gsm.changeState("Infinite Tetris");
+            gameLost = false;
         }
     }
 }

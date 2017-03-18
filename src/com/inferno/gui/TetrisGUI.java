@@ -25,6 +25,8 @@ public class TetrisGUI extends GUI {
 
     private TextElement scoreText;
     private TextElement scoreIncrementText;
+    private TextElement goalText;
+    private TextElement goalAmountText;
 
     private Stopwatch pointTimer;
 
@@ -54,8 +56,8 @@ public class TetrisGUI extends GUI {
 
         addElement(scoreText);
 
-        addElement(new TextElement("Goal", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 64, new Color(1, 1, 1), new Vector2f(570, 400), -20));
-        addElement(new TextElement(Integer.toString(goal), "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(0, 1, 0), new Vector2f(570, 360), -20));
+        addElement(goalText = new TextElement("Goal", "fonts/Roboto Mono/RobotoMono-Regular.ttf", 64, new Color(1, 1, 1), new Vector2f(570, 400), -20));
+        addElement(goalAmountText = new TextElement(Integer.toString(goal), "fonts/Roboto Mono/RobotoMono-Regular.ttf", 32, new Color(0, 1, 0), new Vector2f(570, 360), -20));
     }
 
     @Override
@@ -114,5 +116,10 @@ public class TetrisGUI extends GUI {
         if (pointTimer != null) {
             pointTimer.tick(dt);
         }
+    }
+
+    public void disableGoalTracking() {
+        removeElement(goalText);
+        removeElement(goalAmountText);
     }
 }
